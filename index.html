@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070a0e">
+  <meta name="description" content="Retr0sec by NexuzLabs: laboratorio educativo de ciberseguridad y tecnología open source.">
+  <title>Retr0sec // NexuzLabs</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <div class="boot-screen" id="bootScreen" aria-label="Iniciando Retr0sec">
+    <div class="boot-box">
+      <div class="boot-mark">R<span>0</span></div>
+      <p class="eyebrow">NEXUZLABS // SECURE ENVIRONMENT</p>
+      <h1>BOOTING <span>RETR0SEC OS</span><b class="cursor">_</b></h1>
+      <div class="boot-track"><span id="bootProgress"></span></div>
+      <p id="bootStatus" class="muted">Inicializando entorno...</p>
+    </div>
+  </div>
+
+  <canvas id="matrixCanvas" aria-hidden="true"></canvas>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="Retr0sec, inicio">
+      <span class="brand-icon">R<span>0</span></span>
+      <span>RETR0SEC<small>BY NEXUZLABS</small></span>
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+    <nav id="mainNav">
+      <a href="#inicio" class="active">Inicio</a>
+      <a href="#laboratorio">Laboratorio</a>
+      <a href="#proyectos">Proyectos</a>
+      <a href="#documentacion">Documentación</a>
+      <a href="#contacto">Contacto</a>
+      <a href="https://retr0sec-team.github.io/Learning/" target="_blank" rel="noopener noreferrer">Mi GitHub ↗</a>
+    </nav>
+    <span class="top-status"><i></i> LAB MODE</span>
+  </header>
+
+  <main>
+    <section class="hero section-wrap" id="inicio">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="slash">//</span> CYBERSECURITY · OPEN SOURCE · RESEARCH</p>
+        <h1>Think like an<br><span class="outline-text">operator.</span></h1>
+        <p class="hero-description">Un laboratorio para explorar sistemas, redes y seguridad digital. Aprende, experimenta y documenta cada hallazgo de forma responsable.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#laboratorio">EXPLORAR LAB <span>↗</span></a>
+          <a class="button button-ghost" href="#proyectos">VER PROYECTOS</a>
+        </div>
+        <div class="hero-meta">
+          <span><b>01</b> / LEARN</span><span><b>02</b> / BUILD</span><span><b>03</b> / SECURE</span>
+        </div>
+      </div>
+      <div class="terminal-card">
+        <div class="window-bar"><span class="window-dots"><i></i><i></i><i></i></span><span>retr0sec@lab:~</span><span>TTY 01</span></div>
+        <div class="terminal-body">
+          <p><span class="prompt">root@retr0sec</span>:<span class="path">~</span>$ ./init_lab.sh</p>
+          <p class="term-muted">[ OK ] Loading research modules</p>
+          <p class="term-muted">[ OK ] Checking local environment</p>
+          <p class="term-muted">[ OK ] Starting learning workspace</p>
+          <p class="term-green">[ READY ] Lab mode enabled</p>
+          <p><span class="prompt">root@retr0sec</span>:<span class="path">~</span>$ <span id="typedCommand"></span><span class="cursor">_</span></p>
+          <div class="terminal-divider"></div>
+          <div class="terminal-stats"><span>ENVIRONMENT <b>LOCAL DEMO</b></span><span>STATUS <b class="green">OPERATIONAL</b></span></div>
+        </div>
+      </div>
+      <div class="hero-corner">NX / 026</div>
+    </section>
+
+    <section class="section-wrap" id="laboratorio">
+      <div class="section-heading"><div><p class="eyebrow">01 // ENVIRONMENT</p><h2>Laboratorio<span class="accent">.</span></h2></div><p class="section-note">Herramientas para aprender en entornos propios o autorizados.</p></div>
+      <div class="tool-grid">
+        <article class="tool-card"><div class="tool-top"><span class="tool-symbol">⌕</span><span class="tag">NETWORK</span></div><h3>Nmap</h3><p>Exploración de redes y auditoría de servicios en sistemas autorizados.</p><a href="https://nmap.org/" target="_blank" rel="noreferrer">WEB OFICIAL ↗</a></article>
+        <article class="tool-card"><div class="tool-top"><span class="tool-symbol">◈</span><span class="tag">ANALYSIS</span></div><h3>Wireshark</h3><p>Análisis y aprendizaje de protocolos mediante capturas de tráfico.</p><a href="https://www.wireshark.org/" target="_blank" rel="noreferrer">WEB OFICIAL ↗</a></article>
+        <article class="tool-card"><div class="tool-top"><span class="tool-symbol">⌘</span><span class="tag">SECURITY</span></div><h3>Metasploit</h3><p>Estudia conceptos de pruebas de seguridad en laboratorios controlados.</p><a href="https://www.metasploit.com/" target="_blank" rel="noreferrer">WEB OFICIAL ↗</a></article>
+        <article class="tool-card"><div class="tool-top"><span class="tool-symbol">▦</span><span class="tag">CONTAINERS</span></div><h3>Docker</h3><p>Entornos aislados y reproducibles para proyectos de aprendizaje.</p><a href="https://www.docker.com/" target="_blank" rel="noreferrer">WEB OFICIAL ↗</a></article>
+        <article class="tool-card"><div class="tool-top"><span class="tool-symbol">⌬</span><span class="tag">SYSTEMS</span></div><h3>Linux</h3><p>Administración de sistemas, automatización y herramientas open source.</p><a href="https://www.kernel.org/" target="_blank" rel="noreferrer">KERNEL.ORG ↗</a></article>
+      </div>
+    </section>
+
+    <section class="section-wrap soc-section" id="proyectos">
+      <div class="section-heading"><div><p class="eyebrow">02 // TELEMETRY</p><h2>Live SOC <span class="accent">/</span> Demo</h2></div><div class="demo-label"><i></i> DATOS SIMULADOS</div></div>
+      <div class="soc-grid">
+        <article class="panel chart-panel"><div class="panel-heading"><span>EVENTOS POR INTERVALO</span><span class="panel-code">EVT / 24</span></div><div class="chart-wrap"><canvas id="eventsChart" aria-label="Gráfico de eventos simulados"></canvas></div><p class="panel-foot">Visualización ficticia para demostración de interfaz.</p></article>
+        <article class="panel metric-panel"><div class="panel-heading"><span>ESTADO DEL LAB</span><span class="panel-code">SYS / 01</span></div><div class="metric"><span>Eventos registrados</span><strong id="eventCount">024</strong></div><div class="metric"><span>Alertas de demostración</span><strong class="orange" id="alertCount">003</strong></div><div class="metric"><span>Servicios simulados</span><strong class="green">05/05</strong></div><div class="status-line"><span>ESTADO GENERAL</span><b><i></i> NORMAL</b></div></article>
+        <article class="panel log-panel"><div class="panel-heading"><span>ACTIVIDAD RECIENTE</span><span class="panel-code">LOG / STREAM</span></div><div id="logStream" class="log-stream" aria-live="polite"><p><time>17:32:01</time><span class="green">INFO</span> Entorno de demostración iniciado</p><p><time>17:32:02</time><span class="green">INFO</span> Módulos visuales cargados</p><p><time>17:32:03</time><span class="orange">WARN</span> Evento de prueba generado</p></div><p class="panel-foot">Sin conexión a sistemas reales ni monitorización de red.</p></article>
+      </div>
+    </section>
+
+    <section class="section-wrap docs-section" id="documentacion">
+      <div class="docs-banner"><div><p class="eyebrow">03 // KNOWLEDGE BASE</p><h2>Documenta.<br><span class="accent">Comprende.</span> Comparte.</h2><p>Notas de laboratorio, guías de instalación y proyectos open source. Construye una base de conocimiento útil y reproducible.</p></div><div class="docs-stamp">NXL<br><span>FIELD NOTES</span><br>EST. 2026</div></div>
+      <div class="doc-links"><a href="https://docs.docker.com/" target="_blank" rel="noreferrer"><span>01</span> Docker Docs <b>↗</b></a><a href="https://www.kali.org/docs/" target="_blank" rel="noreferrer"><span>02</span> Kali Linux Docs <b>↗</b></a><a href="https://nmap.org/book/" target="_blank" rel="noreferrer"><span>03</span> Nmap Reference Guide <b>↗</b></a></div>
+    </section>
+
+    <section class="section-wrap contact-section" id="contacto">
+      <div class="section-heading"><div><p class="eyebrow">04 // ESTABLISH CONTACT</p><h2>Solicitar información<span class="accent">.</span></h2></div><p class="section-note">Cuéntanos qué te gustaría explorar.</p></div>
+      <div class="contact-grid">
+        <div class="contact-copy"><p>¿Tienes una pregunta sobre el laboratorio o quieres proponer un proyecto? Completa el formulario y revisa la confirmación.</p><div class="contact-code">CHANNEL: <b>WEB-FORM</b><br>MODE: <b>LOCAL DEMO</b><br>ENCRYPTION: <b>HTTPS EN PRODUCCIÓN</b></div><p class="small-note">Esta versión de demostración no envía ni guarda los datos. Para recibir solicitudes reales, conecta un backend o un proveedor de formularios.</p></div>
+        <form id="infoForm" class="contact-form">
+          <label for="nombre">Nombre</label><input id="nombre" name="nombre" autocomplete="name" required maxlength="80" placeholder="Tu nombre">
+          <label for="email">Correo electrónico</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="160" placeholder="tu@correo.com">
+          <label for="tema">Área de interés</label><select id="tema" name="tema" required><option value="">Selecciona un tema</option><option>Laboratorio virtual</option><option>Linux y sistemas</option><option>Redes y análisis</option><option>Ciberseguridad</option><option>Proyectos open source</option><option>Otro</option></select>
+          <label for="mensaje">Mensaje <span class="optional">(opcional)</span></label><textarea id="mensaje" name="mensaje" rows="4" maxlength="1200" placeholder="¿Qué te gustaría saber?"></textarea>
+          <label class="consent"><input type="checkbox" id="consent" required><span>Entiendo que esta demo no envía mis datos a ningún servidor.</span></label>
+          <button class="button button-primary submit-button" type="submit">SOLICITAR INFORMACIÓN <span>↗</span></button>
+          <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><a class="brand footer-brand" href="#inicio"><span class="brand-icon">R<span>0</span></span><span>RETR0SEC<small>BY NEXUZLABS</small></span></a><p>Proyecto educativo independiente · Usa estas herramientas de forma responsable.</p><a href="https://retr0sec-team.github.io/Learning/" target="_blank" rel="noopener noreferrer">Visita mi página de GitHub ↗</a><span>© 2026 NEXUZLABS</span></footer>
+  <a href="#inicio" class="back-top" aria-label="Volver arriba">↑</a>
+</body>
+</html>
