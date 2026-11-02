@@ -29,7 +29,7 @@
   const ctx = canvas.getContext('2d');
   let columns = 0;
   let drops = [];
-  const glyphs = '01アカサタナハマヤラワ<>/{}[]';
+  const glyphs = '01';
   let frame = 0;
   function resizeMatrix() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
