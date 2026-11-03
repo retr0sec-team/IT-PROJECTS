@@ -99,13 +99,14 @@
     <section class="section-wrap contact-section" id="contacto">
       <div class="section-heading"><div><p class="eyebrow">04 // ESTABLISH CONTACT</p><h2>Solicitar información<span class="accent">.</span></h2></div><p class="section-note">Cuéntanos qué te gustaría explorar.</p></div>
       <div class="contact-grid">
-        <div class="contact-copy"><p>¿Tienes una pregunta sobre el laboratorio o quieres proponer un proyecto? Completa el formulario y revisa la confirmación.</p><div class="contact-code">CHANNEL: <b>WEB-FORM</b><br>MODE: <b>LOCAL DEMO</b><br>ENCRYPTION: <b>HTTPS EN PRODUCCIÓN</b></div><p class="small-note">Esta versión de demostración no envía ni guarda los datos. Para recibir solicitudes reales, conecta un backend o un proveedor de formularios.</p></div>
+        <div class="contact-copy"><p>¿Tienes una pregunta sobre el laboratorio o quieres proponer un proyecto? Completa el formulario y revisa la confirmación.</p><div class="contact-code">CHANNEL: <b>WEB-FORM</b><br>MODE: <b>PHP API / MYSQL</b><br>ENCRYPTION: <b>HTTPS EN PRODUCCIÓN</b></div><p class="small-note">Las solicitudes se envían al servidor de Retr0sec para gestionar tu consulta. No incluyas contraseñas ni información sensible.</p></div>
         <form id="infoForm" class="contact-form">
           <label for="nombre">Nombre</label><input id="nombre" name="nombre" autocomplete="name" required maxlength="80" placeholder="Tu nombre">
           <label for="email">Correo electrónico</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="160" placeholder="tu@correo.com">
           <label for="tema">Área de interés</label><select id="tema" name="tema" required><option value="">Selecciona un tema</option><option>Laboratorio virtual</option><option>Linux y sistemas</option><option>Redes y análisis</option><option>Ciberseguridad</option><option>Proyectos open source</option><option>Otro</option></select>
           <label for="mensaje">Mensaje <span class="optional">(opcional)</span></label><textarea id="mensaje" name="mensaje" rows="4" maxlength="1200" placeholder="¿Qué te gustaría saber?"></textarea>
-          <label class="consent"><input type="checkbox" id="consent" required><span>Entiendo que esta demo no envía mis datos a ningún servidor.</span></label>
+          <label class="consent"><input type="checkbox" id="consent" required><span>He leído la información y acepto que se utilicen estos datos para responder a mi solicitud.</span></label>
+          <div class="hp-field" aria-hidden="true"><label for="website">No rellenar</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
           <button class="button button-primary submit-button" type="submit">SOLICITAR INFORMACIÓN <span>↗</span></button>
           <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
         </form>
