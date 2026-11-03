@@ -162,16 +162,43 @@
   let logTimer;
   if (!reduceMotion) logTimer = setInterval(addLog, 4200);
 
-  // Formulario de demostración. No finge haber enviado datos a un servidor.
+  // Formulario conectado al backend PHP. Cambia esta URL por la dirección
+  // donde hayas publicado la carpeta backend en tu hosting PHP.
+  const API_URL = 'https://retr0sec.free.nf/backend/api/contact.php';
   const form = document.getElementById('infoForm');
   const formMessage = document.getElementById('formMessage');
-  form.addEventListener('submit', event => {
+  const submitButton = form.querySelector('button[type=submit]');
+  form.addEventListener('submit', async event => {
     event.preventDefault();
     if (!form.reportValidity()) return;
-    const name = document.getElementById('nombre').value.trim();
-    formMessage.textContent = `Demo completada, ${name}. No se han enviado ni almacenado datos.`;
-    formMessage.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
-    alert(`[RETR0SEC // DEMO]\n\nInformación Solicitada\n\nEsta es una confirmación local. Para recibir solicitudes reales, configura un backend.`);
+    const payload = {
+      nombre: document.getElementById('nombre').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      tema: document.getElementById('tema').value,
+      mensaje: document.getElementById('mensaje').value.trim(),
+      website: document.getElementById('website').value
+    };
+    submitButton.disabled = true;
+    formMessage.textContent = 'Enviando solicitud...';
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.message || 'No se pudo enviar la solicitud.');
+      formMessage.textContent = result.message;
+      form.reset();
+      alert('[RETR0SEC]\n\nInformación Solicitada\n\nTu solicitud se ha enviado correctamente.');
+    } catch (error) {
+      formMessage.textContent = error.message === 'Failed to fetch'
+        ? 'No se pudo conectar con el servidor. Comprueba la URL del backend y su configuración HTTPS/CORS.'
+        : error.message;
+    } finally {
+      submitButton.disabled = false;
+      formMessage.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+    }
   });
 
   window.addEventListener('pagehide', () => {
