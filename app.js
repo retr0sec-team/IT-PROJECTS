@@ -68,7 +68,7 @@ if(!data.session){
 async function pullCloud(){
   if(!cloudEnabled)return;
   setSync("SINCRONIZANDO…");
-  let {data,error}=await supabase.from("activities").select("*").order("date",{ascending:true}).order("time",{ascending:true});
+  let {data,error}=await supabaseClient.from("activities").select("*").order("date",{ascending:true}).order("time",{ascending:true});
   if(error)throw error;
   const cloud=(data||[]).map(normalize);
   if(cloud.length===0 && items.length>0){
@@ -92,7 +92,7 @@ function toRow(a){
 async function migrateLocal(){
   setSync("SUBIENDO DATOS…");
   const rows=items.map(toRow);
-  const {data,error}=await supabase.from("activities").upsert(rows,{onConflict:"id"}).select();
+  const {data,error}=await supabaseClient.from("activities").upsert(rows,{onConflict:"id"}).select();
   if(error)throw error;
   items=(data||rows).map(normalize);
   localSave();
@@ -109,7 +109,7 @@ async function save(){
   try{
     setSync("GUARDANDO…");
     const rows=items.map(toRow);
-    const {error}=await supabase.from("activities").upsert(rows,{onConflict:"id"});
+    const {error}=await supabaseClient.from("activities").upsert(rows,{onConflict:"id"});
     if(error)throw error;
     setSync("SUPABASE");
   }catch(e){
@@ -119,7 +119,7 @@ async function save(){
 
 async function deleteCloud(ids){
   if(!cloudEnabled||!ids.length)return;
-  const {error}=await supabase.from("activities").delete().in("id",ids);
+  const {error}=await supabaseClient.from("activities").delete().in("id",ids);
   if(error)throw error;
 }
 
