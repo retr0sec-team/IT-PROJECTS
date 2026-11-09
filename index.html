@@ -1,8 +1,141 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NEON//DAY 2.0</title><link rel="stylesheet" href="styles.css"><script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script></head><body>
-<header><b>◈ NEON<span>//</span>DAY <small>2.0</small></b><span>● SISTEMA ACTIVO <time id="today"></time></span></header><main>
-<section class="hero"><div><small>PERSONAL ACTIVITY CONTROL SYSTEM · BUILD 2.0</small><h1>Diseña tu rutina.<br><i>Domina tu tiempo.</i></h1><p>Planifica, visualiza y mide tu progreso.</p></div><aside><small>ÍNDICE DE COMPLETADO</small><strong id="ratio">0 / 0</strong><div class="track"><div id="bar"></div></div><small id="percent">ESPERANDO DATOS</small></aside></section>
-<section class="stats"><article>ACTIVIDADES<strong id="total">0</strong></article><article>PENDIENTES<strong id="pending">0</strong></article><article>COMPLETADAS<strong id="done">0</strong></article><article>PRIORIDAD ALTA<strong id="high">0</strong></article></section>
-<section class="dashboard"><article class="panel"><div class="heading"><div><small>PLANIFICADOR TEMPORAL</small><h2>Calendario</h2></div><nav><button id="prev">‹</button><b id="month"></b><button id="next">›</button></nav></div><div class="week"> <span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span>SÁB</span><span>DOM</span></div><div id="calendar" class="calendar"></div><p class="hint">Selecciona un día para filtrar actividades. Pulsa «Ver todas» para quitar el filtro.</p><button class="link" id="all">Ver todas</button></article>
-<article class="panel"><small>ANÁLISIS DE RUTINA</small><h2>Resumen por categoría</h2><div id="chart"></div><p class="hint">Distribución de tus actividades registradas.</p></article></section>
-<section class="workspace"><article class="panel"><small>NUEVA ENTRADA</small><h2 id="formTitle">Crear actividad</h2><form id="form"><input type="hidden" id="editId"><label>Nombre de la actividad *</label><input id="title" required maxlength="90" placeholder="Ej. Estudiar programación"><div class="two"><div><label>Fecha *</label><input id="date" type="date" required></div><div><label>Hora</label><input id="time" type="time"></div></div><div class="two"><div><label>Categoría</label><select id="category"><option>Personal</option><option>Estudios</option><option>Trabajo</option><option>Salud</option><option>Hogar</option><option>Ocio</option><option>Otro</option></select></div><div><label>Prioridad</label><select id="priority"><option>Media</option><option>Alta</option><option>Baja</option></select></div></div><div class="two"><div><label>Repetición</label><select id="repeat"><option value="none">No repetir</option><option value="daily">Cada día</option><option value="weekly">Cada semana</option><option value="monthly">Cada mes</option></select></div><div><label>Aviso</label><select id="reminder"><option value="none">Sin aviso</option><option value="0">A la hora prevista</option><option value="10">10 min antes</option><option value="30">30 min antes</option></select></div></div><label>Notas / descripción</label><textarea id="description" rows="3" maxlength="500"></textarea><div class="actions"><button class="primary">＋ Añadir actividad</button><button type="button" id="cancel" class="secondary hide">Cancelar</button></div><p class="hint">Los datos se guardan localmente en este navegador.</p></form></article>
-<article class="panel"><div class="heading"><div><small>CENTRO DE CONTROL</small><h2>Mis actividades <sup id="shown">0</sup></h2></div><div class="exports"><button id="xlsx">↓ EXCEL .XLSX</button><button id="csv">CSV</button><button id="json">JSON</button></div></div><div class="filters"><input id="search" placeholder="⌕ Buscar actividad..."><select id="status"><option>Todas</option><option>Pendiente</option><option>Completada</option></select><select id="catFilter"><option>Todas</option><option>Personal</option><option>Estudios</option><option>Trabajo</option><option>Salud</option><option>Hogar</option><option>Ocio</option><option>Otro</option></select></div><p class="hint" id="dayLabel">VISTA GENERAL</p><div id="list"></div><div id="empty" class="empty"><b>No hay actividades aquí</b><p>Crea una actividad o cambia los filtros.</p></div><div class="foot"><span id="summary">0 registros</span><button id="clear" class="link">Eliminar completadas</button></div></article></section></main><output id="toast"></output><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEON//DAY 3.0</title>
+<link rel="stylesheet" href="styles.css">
+<script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header>
+  <b>◈ NEON<span>//</span>DAY <small>3.0</small></b>
+  <span>
+    <span id="syncStatus">● LOCAL</span>
+    <time id="today"></time>
+  </span>
+</header>
+<main>
+<section class="hero">
+  <div>
+    <small>PERSONAL ACTIVITY CONTROL SYSTEM · BUILD 3.0</small>
+    <h1>Diseña tu rutina.<br><i>Domina tu tiempo.</i></h1>
+    <p>Planifica, visualiza y mide tu progreso.</p>
+  </div>
+  <aside>
+    <small>ÍNDICE DE COMPLETADO</small>
+    <strong id="ratio">0 / 0</strong>
+    <div class="track"><div id="bar"></div></div>
+    <small id="percent">ESPERANDO DATOS</small>
+  </aside>
+</section>
+
+<section class="stats">
+  <article>ACTIVIDADES<strong id="total">0</strong></article>
+  <article>PENDIENTES<strong id="pending">0</strong></article>
+  <article>COMPLETADAS<strong id="done">0</strong></article>
+  <article>PRIORIDAD ALTA<strong id="high">0</strong></article>
+</section>
+
+<section class="dashboard">
+<article class="panel">
+  <div class="heading">
+    <div><small>PLANIFICADOR TEMPORAL</small><h2>Calendario</h2></div>
+    <nav><button id="prev">‹</button><b id="month"></b><button id="next">›</button></nav>
+  </div>
+  <div class="week"><span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span>SÁB</span><span>DOM</span></div>
+  <div id="calendar" class="calendar"></div>
+  <p class="hint">Selecciona un día para filtrar actividades. Pulsa «Ver todas» para quitar el filtro.</p>
+  <button class="link" id="all">Ver todas</button>
+</article>
+
+<article class="panel">
+  <small>ANÁLISIS DE RUTINA</small>
+  <h2>Resumen por categoría</h2>
+  <div id="chart"></div>
+  <p class="hint">Distribución de tus actividades registradas.</p>
+</article>
+</section>
+
+<section class="workspace">
+<article class="panel">
+  <small>NUEVA ENTRADA</small>
+  <h2 id="formTitle">Crear actividad</h2>
+  <form id="form">
+    <input type="hidden" id="editId">
+    <label>Nombre de la actividad *</label>
+    <input id="title" required maxlength="90" placeholder="Ej. Estudiar programación">
+
+    <div class="two">
+      <div><label>Fecha *</label><input id="date" type="date" required></div>
+      <div><label>Hora</label><input id="time" type="time"></div>
+    </div>
+
+    <div class="two">
+      <div><label>Categoría</label>
+        <select id="category">
+          <option>Personal</option><option>Estudios</option><option>Trabajo</option>
+          <option>Salud</option><option>Hogar</option><option>Ocio</option><option>Otro</option>
+        </select>
+      </div>
+      <div><label>Prioridad</label>
+        <select id="priority"><option>Media</option><option>Alta</option><option>Baja</option></select>
+      </div>
+    </div>
+
+    <div class="two">
+      <div><label>Repetición</label>
+        <select id="repeat">
+          <option value="none">No repetir</option><option value="daily">Cada día</option>
+          <option value="weekly">Cada semana</option><option value="monthly">Cada mes</option>
+        </select>
+      </div>
+      <div><label>Aviso</label>
+        <select id="reminder">
+          <option value="none">Sin aviso</option><option value="0">A la hora prevista</option>
+          <option value="10">10 min antes</option><option value="30">30 min antes</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Notas / descripción</label>
+    <textarea id="description" rows="3" maxlength="500"></textarea>
+
+    <div class="actions">
+      <button class="primary">＋ Añadir actividad</button>
+      <button type="button" id="cancel" class="secondary hide">Cancelar</button>
+    </div>
+    <p class="hint">Los datos se sincronizan con Supabase cuando está configurado. Si no hay conexión, NEON//DAY usa el almacenamiento local como respaldo.</p>
+  </form>
+</article>
+
+<article class="panel">
+  <div class="heading">
+    <div><small>CENTRO DE CONTROL</small><h2>Mis actividades <sup id="shown">0</sup></h2></div>
+    <div class="exports">
+      <button id="xlsx">↓ EXCEL .XLSX</button><button id="csv">CSV</button><button id="json">JSON</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <input id="search" placeholder="⌕ Buscar actividad...">
+    <select id="status"><option>Todas</option><option>Pendiente</option><option>Completada</option></select>
+    <select id="catFilter">
+      <option>Todas</option><option>Personal</option><option>Estudios</option><option>Trabajo</option>
+      <option>Salud</option><option>Hogar</option><option>Ocio</option><option>Otro</option>
+    </select>
+  </div>
+
+  <p class="hint" id="dayLabel">VISTA GENERAL</p>
+  <div id="list"></div>
+  <div id="empty" class="empty"><b>No hay actividades aquí</b><p>Crea una actividad o cambia los filtros.</p></div>
+  <div class="foot"><span id="summary">0 registros</span><button id="clear" class="link">Eliminar completadas</button></div>
+</article>
+</section>
+</main>
+<output id="toast"></output>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
