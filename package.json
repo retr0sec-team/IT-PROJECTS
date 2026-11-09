@@ -1,0 +1,9 @@
+{
+  "name": "neon-day-v3",
+  "version": "3.0.0",
+  "private": true,
+  "description": "NEON//DAY 3.0 - activity planner with Supabase",
+  "scripts": {
+    "build": "node scripts/generate-config.js"
+  }
+}
