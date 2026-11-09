@@ -1,7 +1,7 @@
 const $=id=>document.getElementById(id);
 const KEY="neon-day-3";
 let items=load(), month=new Date(), picked=null, notified=new Set();
-let supabase=null, cloudEnabled=false, cloudUser=null, syncBusy=false;
+let supabaseClient = null, cloudEnabled = false, cloudUser = null, syncBusy = false;
 
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch{return []}}
 function localSave(){localStorage.setItem(KEY,JSON.stringify(items))}
@@ -42,7 +42,7 @@ async function initCloud(){
     setSync("LOCAL",false); render(); return;
   }
   try{
-    supabase=window.supabase.createClient(cfg.url,cfg.anonKey);
+    supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey);
     let {data,error}=await supabase.auth.getSession();
     if(error)throw error;
     if(!data.session){
