@@ -1,115 +1,19 @@
-const $ = (id) => document.getElementById(id);
-const STORAGE_KEY = "neon-day-activities-v1";
-let activities = loadActivities();
-
-function loadActivities() {
-  try { const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); return Array.isArray(data) ? data : []; }
-  catch { return []; }
-}
-function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify(activities)); render(); }
-function todayISO() {
-  const d = new Date(); const offset = d.getTimezoneOffset(); return new Date(d.getTime() - offset * 60000).toISOString().slice(0,10);
-}
-function escapeHTML(value="") {
-  return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-function prettyDate(date) {
-  if (!date) return "Sin fecha";
-  const [y,m,d] = date.split("-"); return `${d}/${m}/${y}`;
-}
-function toast(message) {
-  $("toast").textContent = message; $("toast").classList.add("show");
-  clearTimeout(toast.timer); toast.timer = setTimeout(() => $("toast").classList.remove("show"), 2400);
-}
-function resetForm() {
-  $("activityForm").reset(); $("editId").value = ""; $("date").value = todayISO();
-  $("formTitle").textContent = "Crear actividad"; $("saveBtn").textContent = "＋ Añadir actividad";
-  $("cancelEdit").classList.add("hidden");
-}
-function render() {
-  const done = activities.filter(a => a.status === "Completada").length;
-  const pending = activities.length - done;
-  const high = activities.filter(a => a.priority === "Alta" && a.status !== "Completada").length;
-  $("statTotal").textContent = activities.length; $("statPending").textContent = pending;
-  $("statDone").textContent = done; $("statHigh").textContent = high;
-  $("doneCount").textContent = done; $("totalCount").textContent = `/ ${activities.length}`;
-  $("progressBar").style.width = activities.length ? `${done / activities.length * 100}%` : "0%";
-  $("progressCaption").textContent = activities.length ? `${Math.round(done / activities.length * 100)}% DEL PLAN COMPLETADO` : "SIN ACTIVIDAD REGISTRADA";
-
-  const q = $("search").value.trim().toLowerCase();
-  const status = $("filterStatus").value, category = $("filterCategory").value;
-  const visible = activities.filter(a =>
-    (!q || `${a.title} ${a.description} ${a.category}`.toLowerCase().includes(q)) &&
-    (status === "Todas" || a.status === status) &&
-    (category === "Todas" || a.category === category)
-  ).sort((a,b) => (a.date || "").localeCompare(b.date || "") || (a.time || "").localeCompare(b.time || ""));
-  $("visibleCount").textContent = visible.length;
-  $("listSummary").textContent = `${visible.length} de ${activities.length} registros`;
-  $("emptyState").style.display = visible.length ? "none" : "block";
-  $("activityList").innerHTML = visible.map(a => `
-    <article class="activity-item ${a.status === "Completada" ? "done" : ""} ${a.priority === "Alta" && a.status !== "Completada" ? "high" : ""}">
-      <button class="check-btn" data-action="toggle" data-id="${a.id}" aria-label="Cambiar estado">${a.status === "Completada" ? "✓" : ""}</button>
-      <div class="activity-main">
-        <div class="activity-title">${escapeHTML(a.title)}</div>
-        <div class="activity-meta"><span>${prettyDate(a.date)}${a.time ? " · " + escapeHTML(a.time) : ""}</span><span class="tag">${escapeHTML(a.category)}</span><span class="${a.priority === "Alta" ? "priority-high" : ""}">${escapeHTML(a.priority)}</span><span>${a.status}</span></div>
-        ${a.description ? `<div class="activity-meta">${escapeHTML(a.description)}</div>` : ""}
-      </div>
-      <div class="item-actions"><button class="mini-btn" data-action="edit" data-id="${a.id}">Editar</button><button class="mini-btn" data-action="delete" data-id="${a.id}">×</button></div>
-    </article>`).join("");
-}
-$("activityForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const id = $("editId").value;
-  const record = {
-    id: id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
-    title: $("title").value.trim(), date: $("date").value, time: $("time").value,
-    category: $("category").value, priority: $("priority").value,
-    description: $("description").value.trim(),
-    status: id ? (activities.find(a => a.id === id)?.status || "Pendiente") : "Pendiente",
-    createdAt: id ? (activities.find(a => a.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
-  };
-  if (!record.title || !record.date) return;
-  if (id) { activities = activities.map(a => a.id === id ? record : a); toast("Actividad actualizada"); }
-  else { activities.push(record); toast("Actividad añadida"); }
-  persist(); resetForm();
-});
-$("cancelEdit").addEventListener("click", resetForm);
-$("activityList").addEventListener("click", e => {
-  const btn = e.target.closest("button[data-action]"); if (!btn) return;
-  const {action,id} = btn.dataset; const item = activities.find(a => a.id === id); if (!item) return;
-  if (action === "toggle") { item.status = item.status === "Completada" ? "Pendiente" : "Completada"; persist(); }
-  if (action === "delete" && confirm(`¿Eliminar "${item.title}"?`)) { activities = activities.filter(a => a.id !== id); persist(); toast("Actividad eliminada"); }
-  if (action === "edit") {
-    $("editId").value = item.id; $("title").value = item.title; $("date").value = item.date;
-    $("time").value = item.time || ""; $("category").value = item.category; $("priority").value = item.priority;
-    $("description").value = item.description || ""; $("formTitle").textContent = "Editar actividad";
-    $("saveBtn").textContent = "Guardar cambios"; $("cancelEdit").classList.remove("hidden");
-    $("title").focus(); window.scrollTo({top:0,behavior:"smooth"});
-  }
-});
-["search","filterStatus","filterCategory"].forEach(id => $(id).addEventListener(id === "search" ? "input" : "change", render));
-$("clearDone").addEventListener("click", () => {
-  const count = activities.filter(a => a.status === "Completada").length;
-  if (!count) return toast("No hay actividades completadas");
-  if (confirm(`¿Eliminar ${count} actividad(es) completada(s)?`)) { activities = activities.filter(a => a.status !== "Completada"); persist(); toast("Actividades completadas eliminadas"); }
-});
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob); const a = document.createElement("a");
-  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-$("exportCsv").addEventListener("click", () => {
-  if (!activities.length) return toast("No hay datos para exportar");
-  const headers = ["Actividad","Fecha","Hora","Categoría","Prioridad","Estado","Descripción","Creada"];
-  const rows = activities.map(a => [a.title,a.date,a.time,a.category,a.priority,a.status,a.description,a.createdAt]);
-  const csv = [headers,...rows].map(row => row.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(";")).join("\r\n");
-  downloadBlob(new Blob(["\ufeff",csv],{type:"text/csv;charset=utf-8;"}),`neon-day-actividades-${todayISO()}.csv`);
-  toast("Archivo CSV exportado");
-});
-$("exportJson").addEventListener("click", () => {
-  if (!activities.length) return toast("No hay datos para exportar");
-  downloadBlob(new Blob([JSON.stringify(activities,null,2)],{type:"application/json"}),`neon-day-backup-${todayISO()}.json`);
-  toast("Copia JSON exportada");
-});
-$("todayLabel").textContent = new Date().toLocaleDateString("es-ES",{weekday:"short",day:"2-digit",month:"short",year:"numeric"}).toUpperCase();
-$("date").value = todayISO();
+const $=id=>document.getElementById(id),KEY="neon-day-2";let items=load(),month=new Date(),picked=null,notified=new Set();
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch{return []}}function iso(d){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}function today(){return iso(new Date())}function esc(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}function toast(s){let o=$("toast");o.textContent=s;o.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>o.classList.remove("show"),2200)}function save(){localStorage.setItem(KEY,JSON.stringify(items));render()}function dlabel(s){return s? s.split("-").reverse().join("/"):""}
+function expand(a){if(a.repeat==="none")return;let start=new Date(a.date+"T12:00:00");for(let i=1;i<=60;i++){let d=new Date(start);if(a.repeat==="daily")d.setDate(d.getDate()+i);if(a.repeat==="weekly")d.setDate(d.getDate()+7*i);if(a.repeat==="monthly"){d.setMonth(d.getMonth()+i);if(d.getDate()!==start.getDate())d.setDate(0)}if(d>Date.now()+90*86400000)break;let date=iso(d),id=a.id+"_"+date;if(!items.some(x=>x.id===id))items.push({...a,id,date,repeat:"none",parent:a.id,status:"Pendiente"})}}
+function calendar(){let y=month.getFullYear(),m=month.getMonth(),start=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate();$("month").textContent=month.toLocaleDateString("es-ES",{month:"long",year:"numeric"}).toUpperCase();let out=[];for(let i=0;i<42;i++){let day=i-start+1,d=new Date(y,m,day),key=iso(d),arr=items.filter(a=>a.date===key),done=arr.length&&arr.every(a=>a.status==="Completada");out.push(`<button data-date="${key}" class="${day<1||day>n?"muted":""} ${key===today()?"today":""} ${key===picked?"selected":""}">${d.getDate()}${arr.length?`<i class="${done?"done":""}"></i>`:""}</button>`)}$("calendar").innerHTML=out.join("")}
+function chart(){let cats=["Personal","Estudios","Trabajo","Salud","Hogar","Ocio","Otro"],max=Math.max(1,...cats.map(c=>items.filter(a=>a.category===c).length));$("chart").innerHTML=cats.map(c=>{let n=items.filter(a=>a.category===c).length;return `<div class="chartrow"><span>${c}</span><div class="charttrack"><div class="chartfill" style="width:${n/max*100}%"></div></div><b>${n}</b></div>`}).join("")}
+function render(){let done=items.filter(a=>a.status==="Completada").length,pending=items.length-done,high=items.filter(a=>a.priority==="Alta"&&a.status!=="Completada").length;$("total").textContent=items.length;$("pending").textContent=pending;$("done").textContent=done;$("high").textContent=high;$("ratio").textContent=`${done} / ${items.length}`;$("bar").style.width=items.length?done/items.length*100+"%":"0%";$("percent").textContent=items.length?Math.round(done/items.length*100)+"% COMPLETADO":"ESPERANDO DATOS";
+let q=$("search").value.toLowerCase(),st=$("status").value,cat=$("catFilter").value;let shown=items.filter(a=>(!picked||a.date===picked)&&(!q||`${a.title} ${a.description} ${a.category}`.toLowerCase().includes(q))&&(st==="Todas"||a.status===st)&&(cat==="Todas"||a.category===cat)).sort((a,b)=>(a.date||"").localeCompare(b.date||"")||(a.time||"").localeCompare(b.time||""));$("shown").textContent=shown.length;$("summary").textContent=`${shown.length} de ${items.length} registros`;$("dayLabel").textContent=picked?"VISTA DEL "+dlabel(picked):"VISTA GENERAL";$("empty").style.display=shown.length?"none":"block";
+$("list").innerHTML=shown.map(a=>`<div class="activity ${a.status==="Completada"?"done":""} ${a.priority==="Alta"?"high":""}"><button class="check" data-act="toggle" data-id="${a.id}">${a.status==="Completada"?"✓":""}</button><div><b>${esc(a.title)}</b><div class="meta">${dlabel(a.date)} ${a.time||""} · <span class="tag">${esc(a.category)}</span> · ${a.priority} · ${a.status} ${a.parent?"· ↻ REPETIDA":a.repeat!=="none"?"· ↻ "+a.repeat:""}</div>${a.description?`<div class="meta">${esc(a.description)}</div>`:""}</div><div class="ops"><button data-act="edit" data-id="${a.id}">Editar</button><button data-act="delete" data-id="${a.id}">×</button></div></div>`).join("");calendar();chart()}
+function reset(){$("form").reset();$("editId").value="";$("date").value=today();$("formTitle").textContent="Crear actividad";$("cancel").classList.add("hide");$("form").querySelector(".primary").textContent="＋ Añadir actividad"}
+$("form").onsubmit=e=>{e.preventDefault();let id=$("editId").value,old=items.find(a=>a.id===id),a={id:id||crypto.randomUUID(),title:$("title").value.trim(),date:$("date").value,time:$("time").value,category:$("category").value,priority:$("priority").value,repeat:$("repeat").value,reminder:$("reminder").value,description:$("description").value.trim(),status:old?.status||"Pendiente",createdAt:old?.createdAt||new Date().toISOString()};if(id){items=items.filter(x=>x.id!==id&&x.parent!==id);items.push(a);toast("Actividad actualizada")}else{items.push(a);expand(a);toast("Actividad creada")}save();reset()};
+$("cancel").onclick=reset;$("list").onclick=e=>{let b=e.target.closest("[data-act]");if(!b)return;let a=items.find(x=>x.id===b.dataset.id);if(!a)return;if(b.dataset.act==="toggle"){a.status=a.status==="Completada"?"Pendiente":"Completada";save()}if(b.dataset.act==="delete"&&confirm("¿Eliminar actividad?")){items=items.filter(x=>x.id!==a.id&&x.parent!==a.id);save();toast("Actividad eliminada")}if(b.dataset.act==="edit"){$("editId").value=a.id;["title","date","time","category","priority","repeat","reminder","description"].forEach(k=>$(k).value=a[k]|| (["repeat","reminder"].includes(k)?"none":""));$("formTitle").textContent="Editar actividad";$("form").querySelector(".primary").textContent="Guardar cambios";$("cancel").classList.remove("hide");scrollTo({top:0,behavior:"smooth"})}};
+["search","status","catFilter"].forEach(k=>$(k).addEventListener(k==="search"?"input":"change",render));$("prev").onclick=()=>{month.setMonth(month.getMonth()-1);calendar()};$("next").onclick=()=>{month.setMonth(month.getMonth()+1);calendar()};$("calendar").onclick=e=>{let b=e.target.closest("[data-date]");if(b){picked=picked===b.dataset.date?null:b.dataset.date;render()}};$("all").onclick=()=>{picked=null;render()};
+$("clear").onclick=()=>{let n=items.filter(a=>a.status==="Completada").length;if(n&&confirm(`¿Eliminar ${n} completadas?`)){items=items.filter(a=>a.status!=="Completada");save()}};
+let cols=["Actividad","Fecha","Hora","Categoría","Prioridad","Estado","Repetición","Aviso","Descripción","Creada"],keys=["title","date","time","category","priority","status","repeat","reminder","description","createdAt"];function rows(){return items.map(a=>Object.fromEntries(cols.map((c,i)=>[c,a[keys[i]]||""])))}function dl(blob,name){let u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}function csv(){let data=[cols,...items.map(a=>keys.map(k=>a[k]||""))].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(";")).join("\r\n");dl(new Blob(["\ufeff",data],{type:"text/csv;charset=utf-8"}),`neon-day-${today()}.csv`)}
+$("csv").onclick=()=>items.length?(csv(),toast("CSV exportado")):toast("No hay datos");$("xlsx").onclick=()=>{if(!items.length)return toast("No hay datos");if(window.XLSX){let wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows()),"Actividades");XLSX.writeFile(wb,`neon-day-${today()}.xlsx`);toast("Excel exportado")}else{csv();toast("Sin conexión a SheetJS: CSV exportado")}};$("json").onclick=()=>items.length?dl(new Blob([JSON.stringify(items,null,2)],{type:"application/json"}),`neon-day-backup-${today()}.json`):toast("No hay datos");
+$("today").textContent=new Date().toLocaleDateString("es-ES",{weekday:"short",day:"2-digit",month:"short",year:"numeric"}).toUpperCase();$("date").value=today();
+function reminders(){if(!("Notification"in window)||Notification.permission!=="granted")return;let now=Date.now();items.filter(a=>a.status==="Pendiente"&&a.time&&a.reminder!=="none").forEach(a=>{let t=new Date(a.date+"T"+a.time).getTime()-Number(a.reminder)*60000,k=a.id+a.date+a.time;if(t<=now&&t>now-30000&&!notified.has(k)){new Notification("NEON//DAY · Recordatorio",{body:a.title+" · "+a.time});notified.add(k)}})}
+$("reminder").onchange=()=>{if($("reminder").value!=="none"&&"Notification"in window&&Notification.permission==="default")Notification.requestPermission().then(p=>toast(p==="granted"?"Avisos activados":"Permiso de avisos no concedido"))};if("Notification"in window&&Notification.permission==="granted")setInterval(reminders,15000);
 render();
