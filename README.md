@@ -1,1 +1,1 @@
-# NEON//DAY 3.0 · Vercel + Supabase
+# NEON//DAY 3.0
