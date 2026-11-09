@@ -43,13 +43,15 @@ async function initCloud(){
   }
   try{
     supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey);
-    let {data,error}=await supabase.auth.getSession();
-    if(error)throw error;
-    if(!data.session){
-      let r=await supabase.auth.signInAnonymously();
-      if(r.error)throw r.error;
-      data={session:r.data.session};
-    }
+    let {data,error}=await supabaseClient.auth.getSession();
+
+if(error) throw error;
+
+if(!data.session){
+  let r=await supabaseClient.auth.signInAnonymously();
+  if(r.error) throw r.error;
+  data={session:r.data.session};
+}
     cloudUser=data.session.user;
     cloudEnabled=true;
     setSync("SUPABASE");
