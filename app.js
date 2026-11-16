@@ -94,17 +94,33 @@ async function createSharedAccount(){
   const email=$("accountEmail").value.trim();
   const password=$("accountPassword").value;
   if(!email||password.length<8){toast("Introduce un correo y una contraseña de al menos 8 caracteres.");return}
-  if(!cloudUser.is_anonymous){toast("Ya estás usando una cuenta.");return}
   $("accountCreate").disabled=true;
   try{
-    const {data,error}=await supabaseClient.auth.updateUser({email,password});
+    if(cloudUser.is_anonymous){
+      const {data,error}=await supabaseClient.auth.updateUser({email});
+      if(error)throw error;
+      cloudUser=data.user||cloudUser;
+      updateAccountUI();
+      $("accountEmail").value=email;
+      $("accountPassword").value=password;
+      $("accountStatus").textContent="Te hemos enviado un correo de verificación. Confirma tu dirección y vuelve a esta página para establecer la contraseña.";
+      toast("Revisa tu correo y confirma la dirección. Después vuelve aquí y pulsa de nuevo «Crear cuenta».");
+      return;
+    }
+    if(cloudUser.email&&!cloudUser.email_confirmed_at){
+      toast("Primero confirma tu correo desde el mensaje de Supabase.");
+      return;
+    }
+    const {data,error}=await supabaseClient.auth.updateUser({password});
     if(error)throw error;
     cloudUser=data.user||cloudUser;
     updateAccountUI();
-    toast("Cuenta vinculada. Si Supabase pide verificar el correo, revisa tu bandeja.");
-    $("accountStatus").textContent="Cuenta vinculada a "+email+". Usa ese correo y contraseña en tus otros dispositivos.";
-  }catch(e){console.error(e);toast("No se pudo crear la cuenta: "+(e.message||"comprueba el correo y la configuración de Auth."))}
-  finally{$("accountCreate").disabled=false}
+    $("accountStatus").textContent="Cuenta configurada. Usa este correo y contraseña en tus otros dispositivos.";
+    toast("¡Cuenta multidispositivo lista! Ya puedes iniciar sesión en otros dispositivos.");
+  }catch(e){
+    console.error(e);
+    toast("No se pudo completar el registro: "+(e.message||"revisa la configuración de Auth."));
+  }finally{$("accountCreate").disabled=false}
 }
 async function loginSharedAccount(){
   if(!supabaseClient)return;
