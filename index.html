@@ -133,6 +133,25 @@
   <div class="foot"><span id="summary">0 registros</span><button id="clear" class="link">Eliminar completadas</button></div>
 </article>
 </section>
+  <!-- NEON//ASSIST -->
+<button id="assistantFab" class="assistant-fab" aria-label="Abrir asistente">✦</button>
+<section id="assistant" class="assistant" aria-label="Asistente de tareas">
+  <div class="assistant-head">
+    <div><strong>NEON//ASSIST</strong><small>Organizador local</small></div>
+    <button id="assistantClose" aria-label="Cerrar">×</button>
+  </div>
+  <div id="assistantMessages" class="assistant-messages"></div>
+  <div class="assistant-suggestions">
+    <button data-prompt="¿Qué tengo pendiente hoy?">Hoy</button>
+    <button data-prompt="¿Qué tengo pendiente mañana?">Mañana</button>
+    <button data-prompt="¿Qué tareas tengo de alta prioridad?">Prioridad</button>
+  </div>
+  <form id="assistantForm" class="assistant-form">
+    <input id="assistantInput" autocomplete="off" placeholder="Ej. recuérdame estudiar mañana a las 18:00">
+    <button>Enviar</button>
+  </form>
+  <p class="assistant-help">Puedo consultar, crear, completar y eliminar tareas.</p>
+</section>
 </main>
 <output id="toast"></output>
 <script src="config.js"></script>
