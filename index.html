@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NEON//DAY 3.0 · Supabase</title>
-<link rel="stylesheet" href="styles.css?v=neon-assist-v2">
+<link rel="stylesheet" href="styles.css?v=neon-multidevice-v1">
 <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -16,6 +16,16 @@
     <time id="today"></time>
   </span>
 </header>
+<section id="accountPanel" class="account-panel">
+  <div class="account-copy"><strong>◈ SINCRONIZACIÓN MULTIDISPOSITIVO</strong><span id="accountStatus">Conecta tus dispositivos con una cuenta.</span></div>
+  <div class="account-controls">
+    <input id="accountEmail" type="email" autocomplete="email" placeholder="Tu correo electrónico" aria-label="Correo electrónico">
+    <input id="accountPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Contraseña (mínimo 8 caracteres)" aria-label="Contraseña">
+    <button type="button" id="accountCreate" class="primary">Crear cuenta con mis actividades</button>
+    <button type="button" id="accountLogin" class="secondary">Entrar desde otro dispositivo</button>
+  </div>
+  <small>La cuenta conserva el identificador actual y las actividades ya guardadas en Supabase. Usa el mismo correo y contraseña en cada dispositivo.</small>
+</section>
 <main>
 <section class="hero">
   <div>
@@ -155,6 +165,6 @@
 </main>
 <output id="toast"></output>
 <script src="config.js"></script>
-<script src="app.js?v=neon-assist-v2"></script>
+<script src="app.js?v=neon-multidevice-v1"></script>
 </body>
 </html>
