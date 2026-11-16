@@ -119,7 +119,13 @@ async function createSharedAccount(){
     toast("¡Cuenta multidispositivo lista! Ya puedes iniciar sesión en otros dispositivos.");
   }catch(e){
     console.error(e);
-    toast("No se pudo completar el registro: "+(e.message||"revisa la configuración de Auth."));
+    const msg=String(e.message||"");
+    if(/different from the old password/i.test(msg)){
+      $("accountStatus").textContent="La contraseña ya está configurada. Prueba «Entrar desde otro dispositivo» con este correo y contraseña.";
+      toast("Esta contraseña ya está guardada en la cuenta. No necesitas crearla otra vez: inicia sesión.");
+    }else{
+      toast("No se pudo completar el registro: "+(msg||"revisa la configuración de Auth."));
+    }
   }finally{$("accountCreate").disabled=false}
 }
 async function loginSharedAccount(){
