@@ -22,3 +22,14 @@
 .assistant-form button:disabled{opacity:.55}
 .assistant-help{margin:0;padding:0 14px 12px;color:#65758c;font-size:10px}
 @media(max-width:600px){.assistant{right:10px;bottom:78px;width:calc(100vw - 20px);height:70vh}.assistant-fab{right:15px;bottom:15px}}
+
+
+/* NEON//DAY · cuenta y sincronización multidispositivo */
+.account-panel{max-width:1200px;margin:14px auto 22px;padding:14px 18px;border:1px solid #20344d;border-radius:14px;background:linear-gradient(120deg,#0d1624,#0a111c);display:grid;gap:10px}
+.account-copy strong{display:block;color:#58d7ff;font-size:11px;letter-spacing:.08em;margin-bottom:5px}
+.account-copy span,.account-panel>small{color:#8794a9;font-size:11px}
+.account-controls{display:grid;grid-template-columns:1.1fr 1fr auto auto;gap:8px;align-items:center}
+.account-controls input{min-width:0}
+.account-controls button{font-size:11px;white-space:nowrap}
+@media(max-width:900px){.account-controls{grid-template-columns:1fr 1fr}.account-controls button{white-space:normal;min-height:42px}}
+@media(max-width:560px){.account-panel{margin:12px;padding:12px}.account-controls{grid-template-columns:1fr}}
