@@ -54,8 +54,10 @@ if(!data.session){
 }
     cloudUser=data.session.user;
     cloudEnabled=true;
+    updateAccountUI();
     setSync("SUPABASE");
     await pullCloud();
+    startCloudRefresh();
   }catch(e){
     console.error(e);
     cloudEnabled=false;
@@ -63,6 +65,61 @@ if(!data.session){
     toast("Supabase no disponible: modo local");
     render();
   }
+}
+
+function updateAccountUI(){
+  const email=cloudUser?.email;
+  const anonymous=cloudUser?.is_anonymous;
+  $("accountStatus").textContent=anonymous
+    ? "Sesión temporal de este dispositivo. Crea una cuenta para compartir tus actividades."
+    : "Cuenta conectada: "+(email||"usuario");
+  $("accountCreate").classList.toggle("hide",!anonymous);
+  $("accountLogin").classList.toggle("hide",!anonymous);
+  $("accountEmail").value=email||"";
+  $("accountPassword").value="";
+}
+async function startCloudRefresh(){
+  if(window.neonCloudRefreshStarted)return;
+  window.neonCloudRefreshStarted=true;
+  setInterval(async()=>{
+    if(!cloudEnabled||syncBusy||document.hidden)return;
+    try{await pullCloud()}catch(e){console.warn("Actualización multidispositivo:",e)}
+  },20000);
+  document.addEventListener("visibilitychange",()=>{
+    if(!document.hidden&&cloudEnabled&&!syncBusy)pullCloud().catch(console.warn);
+  });
+}
+async function createSharedAccount(){
+  if(!supabaseClient||!cloudUser)return;
+  const email=$("accountEmail").value.trim();
+  const password=$("accountPassword").value;
+  if(!email||password.length<8){toast("Introduce un correo y una contraseña de al menos 8 caracteres.");return}
+  if(!cloudUser.is_anonymous){toast("Ya estás usando una cuenta.");return}
+  $("accountCreate").disabled=true;
+  try{
+    const {data,error}=await supabaseClient.auth.updateUser({email,password});
+    if(error)throw error;
+    cloudUser=data.user||cloudUser;
+    updateAccountUI();
+    toast("Cuenta vinculada. Si Supabase pide verificar el correo, revisa tu bandeja.");
+    $("accountStatus").textContent="Cuenta vinculada a "+email+". Usa ese correo y contraseña en tus otros dispositivos.";
+  }catch(e){console.error(e);toast("No se pudo crear la cuenta: "+(e.message||"comprueba el correo y la configuración de Auth."))}
+  finally{$("accountCreate").disabled=false}
+}
+async function loginSharedAccount(){
+  if(!supabaseClient)return;
+  const email=$("accountEmail").value.trim(),password=$("accountPassword").value;
+  if(!email||!password){toast("Introduce tu correo y contraseña.");return}
+  $("accountLogin").disabled=true;
+  try{
+    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    cloudUser=data.user;cloudEnabled=true;
+    updateAccountUI();
+    await pullCloud();
+    toast("Sesión iniciada. Actividades sincronizadas.");
+  }catch(e){console.error(e);toast("No se pudo iniciar sesión: "+(e.message||"revisa tus datos."))}
+  finally{$("accountLogin").disabled=false}
 }
 
 async function pullCloud(){
@@ -295,3 +352,6 @@ initCloud();
   $("assistantForm").addEventListener("submit",async e=>{e.preventDefault();const t=field.value.trim();if(!t)return;field.value="";say(t,"user");const b=document.querySelector("#assistantForm button");b.disabled=true;try{say(await respond(t))}catch(err){console.error(err);say("No he podido completar la acción. Tus datos locales siguen disponibles.")}finally{b.disabled=false}});
   document.querySelectorAll(".assistant-suggestions [data-prompt]").forEach(b=>b.addEventListener("click",async()=>{say(b.dataset.prompt,"user");try{say(await respond(b.dataset.prompt))}catch(e){say("No se pudo completar la consulta.")}}));
 })();
+
+$("accountCreate").addEventListener("click",createSharedAccount);
+$("accountLogin").addEventListener("click",loginSharedAccount);
