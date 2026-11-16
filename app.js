@@ -175,7 +175,7 @@ $("form").onsubmit=async e=>{
   }else{items.push(a);expand(a);toast("Actividad creada")}
   localSave();render();reset();
   if(cloudEnabled){
-    try{setSync("GUARDANDO…");let {error}=await supabase.from("activities").upsert(items.map(toRow),{onConflict:"id"});if(error)throw error;setSync("SUPABASE")}
+    try{setSync("GUARDANDO…");let {error}=await supabaseClient.from("activities").upsert(items.map(toRow),{onConflict:"id"});if(error)throw error;setSync("SUPABASE")}
     catch(e){console.error(e);setSync("LOCAL · ERROR CLOUD",false);toast("Guardado local. Error al sincronizar.")}
   }
 };
@@ -242,3 +242,56 @@ if("Notification"in window&&Notification.permission==="granted")setInterval(remi
 
 render();
 initCloud();
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEON//ASSIST V2 · integrado con el estado y la sincronización de NEON//DAY
+// ─────────────────────────────────────────────────────────────────────────────
+(()=>{
+  const panel=$("assistant"), feed=$("assistantMessages"), field=$("assistantInput");
+  if(!panel||!feed||!field)return;
+  const say=(message,who="bot")=>{
+    const node=document.createElement("div");
+    node.className="assistant-msg "+who;
+    node.textContent=message;
+    feed.appendChild(node);
+    feed.scrollTop=feed.scrollHeight;
+  };
+  const open=()=>{panel.classList.add("open");if(!feed.children.length)say("NEON//ASSIST V2 conectado. Puedo consultar y gestionar tus actividades, sincronizadas con NEON//DAY.");field.focus()};
+  const close=()=>panel.classList.remove("open");
+  const datePlus=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)};
+  const dateText=d=>d?d.split("-").reverse().join("/"):"";
+  const pending=d=>items.filter(a=>a.date===d&&a.status==="Pendiente").sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+  const list=d=>{const a=pending(d);return a.length?"Actividades pendientes · "+dateText(d)+"\n"+a.map((x,i)=>(i+1)+". "+x.title+(x.time?" · "+x.time:"")+" · "+x.priority).join("\n"):"No tienes actividades pendientes para "+dateText(d)+"."};
+  const summary=()=>{const p=items.filter(x=>x.status==="Pendiente").length,d=items.length-p,h=items.filter(x=>x.status==="Pendiente"&&x.priority==="Alta").length;return "RESUMEN NEON//DAY\n• Pendientes: "+p+"\n• Completadas: "+d+"\n• Prioridad alta: "+h+"\n• Total: "+items.length};
+  const create=text=>{
+    let title=text.replace(/^(?:crea(?:r)?|añade?|agrega?|apunta|recuérdame|recuerda)\s*/i,"").trim();
+    const tm=text.match(/\ba\s+las?\s+(\d{1,2})(?::(\d{2}))?/i);
+    const dm=text.match(/\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b/);
+    let date=/\bmañana\b/i.test(text)?datePlus(1):today();
+    if(dm){let y=dm[3]?(dm[3].length===2?"20"+dm[3]:dm[3]):String(new Date().getFullYear());date=y+"-"+String(dm[2]).padStart(2,"0")+"-"+String(dm[1]).padStart(2,"0")}
+    title=title.replace(/\b(?:para\s+)?(?:hoy|mañana)\b/ig,"").replace(/\ba\s+las?\s+\d{1,2}(?::\d{2})?/ig,"").replace(/\bprioridad\s+(?:alta|media|baja)\b/ig,"").replace(/[,. ]+$/,"").trim();
+    if(!title)return null;
+    const category=/asir|estudi|examen|práctica|practica|clase|trabajo/i.test(title)?"Estudios":/reunión|reunion|cliente|oficina/i.test(title)?"Trabajo":"Personal";
+    const priority=/urgente|prioridad alta/i.test(text)?"Alta":/prioridad baja/i.test(text)?"Baja":"Media";
+    const a=normalize({title,date,time:tm?String(tm[1]).padStart(2,"0")+":"+(tm[2]||"00"):"",category,priority,repeat:"none",reminder:tm?"0":"none",status:"Pendiente",description:"Creada con NEON//ASSIST"});
+    items.push(a);expand(a);return a;
+  };
+  const respond=async raw=>{
+    const t=raw.trim(),l=t.toLowerCase();
+    if(/^(?:hola|buenas|ayuda|help)\b/.test(l))return "¡Hola! Puedo ayudarte a organizar tus actividades. Prueba «crea estudiar ASIR mañana a las 18:00», «qué tengo hoy», «marca estudiar como completada» o «resumen».";
+    if(/\bmañana\b/.test(l)&&/(qué|que|tengo|pendiente|actividad|tarea)/.test(l))return list(datePlus(1));
+    if(/\bhoy\b/.test(l)&&/(qué|que|tengo|pendiente|actividad|tarea)/.test(l))return list(today());
+    if(/\b(resumen|estado|cuántas|cuantas)\b/.test(l))return summary();
+    if(/\b(prioridad|urgente)\b/.test(l)&&/(qué|que|tengo|lista|alta)/.test(l)){const a=items.filter(x=>x.status==="Pendiente"&&x.priority==="Alta");return a.length?"PRIORIDAD ALTA\n"+a.map(x=>"• "+x.title+" · "+dateText(x.date)).join("\n"):"No hay actividades pendientes de prioridad alta."}
+    if(/\b(busca|buscar|encuentra)\b/.test(l)){const q=t.replace(/.*?\b(?:busca|buscar|encuentra)\b/i,"").trim().toLowerCase();const a=items.filter(x=>(x.title+" "+x.description+" "+x.category).toLowerCase().includes(q));return a.length?a.slice(0,10).map(x=>"• "+x.title+" · "+dateText(x.date)+" · "+x.status).join("\n"):"No encuentro actividades que coincidan."}
+    if(/\b(?:marca|marcar|completa|completar|termina)\b/.test(l)){const q=t.replace(/.*?\b(?:marca|marcar|completa|completar|termina)\b/i,"").replace(/\bcomo\s+(?:completada|hecha)\b/i,"").trim().toLowerCase();const a=items.find(x=>x.status!=="Completada"&&x.title.toLowerCase().includes(q));if(!a)return "No encuentro esa actividad pendiente. Dime parte de su título.";a.status="Completada";await save();return "✓ Actividad completada: "+a.title}
+    if(/\b(?:elimina|eliminar|borra|borrar)\b/.test(l)){const q=t.replace(/.*?\b(?:elimina|eliminar|borra|borrar)\b/i,"").trim().toLowerCase();const a=items.find(x=>x.title.toLowerCase().includes(q));if(!a)return "No encuentro esa actividad.";const ids=[a.id,...items.filter(x=>x.parent===a.id).map(x=>x.id)];for(let i=items.length-1;i>=0;i--)if(ids.includes(items[i].id))items.splice(i,1);localSave();render();try{await deleteCloud(ids);setSync("SUPABASE")}catch(e){console.error(e);setSync("LOCAL · ERROR CLOUD",false)}return "Actividad eliminada: "+a.title}
+    if(/^(?:crea|crear|añade|anade|agrega|apunta|recuérdame|recuerdame|recuerda)\b/i.test(t)){const a=create(t);if(!a)return "No he podido interpretar el nombre de la actividad. Prueba «Crea estudiar ASIR mañana a las 18:00».";await save();return "✓ Actividad creada y guardada: "+a.title+"\n"+dateText(a.date)+(a.time?" · "+a.time:"")+" · "+a.category+" · "+a.priority}
+    return "Puedo hacer estas acciones:\n• Consultar tus actividades de hoy o mañana\n• Crear actividades con fecha y hora\n• Marcar una actividad como completada\n• Eliminar actividades\n• Buscar actividades y mostrar un resumen\n\nEjemplo: «Crea estudiar ASIR mañana a las 18:00».";
+  };
+  $("assistantFab").addEventListener("click",open);
+  $("assistantClose").addEventListener("click",close);
+  $("assistantForm").addEventListener("submit",async e=>{e.preventDefault();const t=field.value.trim();if(!t)return;field.value="";say(t,"user");const b=document.querySelector("#assistantForm button");b.disabled=true;try{say(await respond(t))}catch(err){console.error(err);say("No he podido completar la acción. Tus datos locales siguen disponibles.")}finally{b.disabled=false}});
+  document.querySelectorAll(".assistant-suggestions [data-prompt]").forEach(b=>b.addEventListener("click",async()=>{say(b.dataset.prompt,"user");try{say(await respond(b.dataset.prompt))}catch(e){say("No se pudo completar la consulta.")}}));
+})();
